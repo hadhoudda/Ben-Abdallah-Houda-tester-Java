@@ -86,4 +86,10 @@ public class TicketDAO {
         }
         return false;
     }
+
+    //count how many tickets are recorded for a vehicle
+    public int getNbTicket(){
+        return 1;
+    }
+
 }

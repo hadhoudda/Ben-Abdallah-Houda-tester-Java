@@ -4,35 +4,50 @@ import com.parkit.parkingsystem.constants.Fare;
 import com.parkit.parkingsystem.model.Ticket;
 
 public class FareCalculatorService {
-    final long DURATION_LIMIT = 30 * 60 * 1000;
-    public void calculateFare(Ticket ticket){
-        if( (ticket.getOutTime() == null) || (ticket.getOutTime().before(ticket.getInTime())) ){
-            throw new IllegalArgumentException("Out time provided is incorrect:"+ticket.getOutTime().toString());
+    //free station duration 30 minutes
+    final double DURATION_LIMIT = 30 * 60 * 1000;
+
+    public void calculateFare(Ticket ticket, boolean discount) {
+        if ((ticket.getOutTime() == null) || (ticket.getOutTime().before(ticket.getInTime()))) {
+            throw new IllegalArgumentException("Out time provided is incorrect:" + ticket.getOutTime().toString());
         }
 
-        long inHour = ticket.getInTime().getTime();
-        long outHour = ticket.getOutTime().getTime();
+        double inHour = ticket.getInTime().getTime();
+        double outHour = ticket.getOutTime().getTime();
+        double duration = outHour - inHour;
 
-        //TODO: Some tests are failing here. Need to check if this logic is correct
-        long duration = outHour - inHour;
         //a price of 0 if the duration in the car park is less than 30 minutes
-        if(duration < DURATION_LIMIT){
+        if (duration < DURATION_LIMIT) {
             ticket.setPrice(0);
-        } else {
-
-
-        switch (ticket.getParkingSpot().getParkingType()){
+            return;
+        }
+        switch (ticket.getParkingSpot().getParkingType()) {
             case CAR: {
-                ticket.setPrice((duration * Fare.CAR_RATE_PER_HOUR) / (1000 * 60 * 60));
+                if (discount) {
+                    //price minus 5% for recurring users car
+                    ticket.setPrice((duration * Fare.CAR_RATE_PER_HOUR) / (1000 * 60 * 60) * 0.95);
+                } else {
+                    //standard price car
+                    ticket.setPrice((duration * Fare.CAR_RATE_PER_HOUR) / (1000 * 60 * 60));
+                }
                 break;
             }
             case BIKE: {
-                ticket.setPrice(duration * Fare.BIKE_RATE_PER_HOUR / (1000 * 60 * 60));
+                if (discount) {
+                    //price minus 5% for recurring users bike
+                    ticket.setPrice((duration * Fare.BIKE_RATE_PER_HOUR / (1000 * 60 * 60)) * 0.95);
+                } else {
+                    //standard price bike
+                    ticket.setPrice(duration * Fare.BIKE_RATE_PER_HOUR / (1000 * 60 * 60));
+                }
                 break;
             }
-            default: throw new IllegalArgumentException("Unkown Parking Type");
+            default:
+                throw new IllegalArgumentException("Unkown Parking Type");
         }
-        }
+    }
 
+    public void calculateFare(Ticket ticket) {
+        calculateFare(ticket, false);
     }
 }
