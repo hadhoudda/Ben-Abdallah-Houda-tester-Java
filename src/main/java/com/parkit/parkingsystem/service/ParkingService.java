@@ -28,6 +28,8 @@ public class ParkingService {
     }
 
     public void processIncomingVehicle() {
+        //welcome message
+        System.out.println("Welcome! Bienvenue! ");
         try{
             ParkingSpot parkingSpot = getNextParkingNumberIfAvailable();
             if(parkingSpot !=null && parkingSpot.getId() > 0){
@@ -103,7 +105,15 @@ public class ParkingService {
             Ticket ticket = ticketDAO.getTicket(vehicleRegNumber);
             Date outTime = new Date();
             ticket.setOutTime(outTime);
-            fareCalculatorService.calculateFare(ticket);
+
+            //checks if the user is a recurring
+            if(ticketDAO.getNbTicket(vehicleRegNumber) > 0){
+                fareCalculatorService.calculateFare(ticket,true);
+            }
+            else {
+                fareCalculatorService.calculateFare(ticket);
+            }
+
             if(ticketDAO.updateTicket(ticket)) {
                 ParkingSpot parkingSpot = ticket.getParkingSpot();
                 parkingSpot.setAvailable(true);
