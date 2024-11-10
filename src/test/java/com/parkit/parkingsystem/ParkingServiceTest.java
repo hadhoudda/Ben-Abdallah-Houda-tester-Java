@@ -13,6 +13,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Date;
 
@@ -20,7 +21,6 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class ParkingServiceTest {
-
     private static ParkingService parkingService;
 
     @Mock
@@ -31,7 +31,7 @@ public class ParkingServiceTest {
     private static TicketDAO ticketDAO;
 
     @BeforeEach
-    private void setUpPerTest() {
+    public void setUpPerTest() {
         try {
             when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("ABCDEF");
 
@@ -54,8 +54,15 @@ public class ParkingServiceTest {
 
     @Test
     public void processExitingVehicleTest(){
+        //GIVEN
+        when(ticketDAO.getNbTicket(anyString())).thenReturn(1);
+
+        //WHEN
         parkingService.processExitingVehicle();
+
+        //THEN
+        //
+        verify(ticketDAO, Mockito.times(1)).getNbTicket(anyString());
         verify(parkingSpotDAO, Mockito.times(1)).updateParking(any(ParkingSpot.class));
     }
-
 }
