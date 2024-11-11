@@ -8,8 +8,10 @@ import com.parkit.parkingsystem.model.Ticket;
 import com.parkit.parkingsystem.service.ParkingService;
 import com.parkit.parkingsystem.util.InputReaderUtil;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -21,6 +23,8 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class ParkingServiceTest {
+
+    @Mock
     private static ParkingService parkingService;
 
     @Mock
@@ -61,8 +65,23 @@ public class ParkingServiceTest {
         parkingService.processExitingVehicle();
 
         //THEN
-        //
         verify(ticketDAO, Mockito.times(1)).getNbTicket(anyString());
         verify(parkingSpotDAO, Mockito.times(1)).updateParking(any(ParkingSpot.class));
     }
+
+    @Test
+    public void testProcessIncomingVehicle(){
+        //GIVEN
+        when(ticketDAO.saveTicket(any(Ticket.class))).thenReturn(true);
+
+        //WHEN
+        parkingService.processIncomingVehicle();
+
+        //THEN
+        verify(parkingSpotDAO, Mockito.times(1)).updateParking(any(ParkingSpot.class));
+        verify(ticketDAO, Mockito.times(1)).saveTicket(any(Ticket.class));
+
+    }
+
+
 }
