@@ -11,11 +11,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
-
 import java.util.Date;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class FareCalculatorServiceTest {
 
@@ -174,9 +173,10 @@ public class FareCalculatorServiceTest {
         ticket.setInTime(inTime);
         ticket.setOutTime(outTime);
         ticket.setParkingSpot(parkingSpot);
-        fareCalculatorService.calculateFare(ticket,true);
+        fareCalculatorService.calculateFare(ticket, true);
         assertEquals((0.95 * 0.75 * Fare.CAR_RATE_PER_HOUR), ticket.getPrice());
     }
+
     //5% discount for returning users Bike
     @Test
     public void calculateFareBikeWithDiscountDescription() {
@@ -188,7 +188,7 @@ public class FareCalculatorServiceTest {
         ticket.setInTime(inTime);
         ticket.setOutTime(outTime);
         ticket.setParkingSpot(parkingSpot);
-        fareCalculatorService.calculateFare(ticket,true);
+        fareCalculatorService.calculateFare(ticket, true);
         assertEquals((0.95 * 0.75 * Fare.BIKE_RATE_PER_HOUR), ticket.getPrice());
     }
 
