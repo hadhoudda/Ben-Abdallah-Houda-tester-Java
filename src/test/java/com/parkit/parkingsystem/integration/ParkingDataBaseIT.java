@@ -108,8 +108,6 @@ public class ParkingDataBaseIT {
     }
 
 
-
-
     @Test
     public void testParkingLotExit() throws Exception {
 
