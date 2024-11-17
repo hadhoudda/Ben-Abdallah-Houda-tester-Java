@@ -25,7 +25,7 @@ public class FareCalculatorService {
             case CAR: {
                 if (discount) {
                     //price minus 5% for recurring users car
-                    ticket.setPrice((duration * Fare.CAR_RATE_PER_HOUR) / (1000 * 60 * 60) * 0.95);
+                    ticket.setPrice(((duration * Fare.CAR_RATE_PER_HOUR) / (1000 * 60 * 60)) * 0.95);
                 } else {
                     //standard price car
                     ticket.setPrice((duration * Fare.CAR_RATE_PER_HOUR) / (1000 * 60 * 60));
