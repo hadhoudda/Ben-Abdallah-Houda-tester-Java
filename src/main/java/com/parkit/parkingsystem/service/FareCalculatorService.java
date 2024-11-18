@@ -25,20 +25,20 @@ public class FareCalculatorService {
             case CAR: {
                 if (discount) {
                     //price minus 5% for recurring users car
-                    ticket.setPrice(((duration * Fare.CAR_RATE_PER_HOUR) / (1000 * 60 * 60)) * 0.95);
+                    ticket.setPrice((((duration/ (1000 * 60 * 60)) * Fare.CAR_RATE_PER_HOUR) ) * 0.95);
                 } else {
                     //standard price car
-                    ticket.setPrice((duration * Fare.CAR_RATE_PER_HOUR) / (1000 * 60 * 60));
+                    ticket.setPrice((duration/ (1000 * 60 * 60)) * Fare.CAR_RATE_PER_HOUR);
                 }
                 break;
             }
             case BIKE: {
                 if (discount) {
                     //price minus 5% for recurring users bike
-                    ticket.setPrice((duration * Fare.BIKE_RATE_PER_HOUR / (1000 * 60 * 60)) * 0.95);
+                    ticket.setPrice(((duration / (1000 * 60 * 60)) * Fare.BIKE_RATE_PER_HOUR) * 0.95);
                 } else {
                     //standard price bike
-                    ticket.setPrice(duration * Fare.BIKE_RATE_PER_HOUR / (1000 * 60 * 60));
+                    ticket.setPrice((duration/ (1000 * 60 * 60)) * Fare.BIKE_RATE_PER_HOUR );
                 }
                 break;
             }

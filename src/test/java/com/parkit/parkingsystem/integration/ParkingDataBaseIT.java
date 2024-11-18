@@ -25,7 +25,6 @@ import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -86,17 +85,15 @@ public class ParkingDataBaseIT {
             // Verifie que le ticket a enregistre dans la bdd
             ResultSet rsTicket = psTicket.executeQuery();
             assertTrue(rsTicket.next());
-            //assertTrue(ticketDAO.saveTicket(ticket));
 
             // Verifie que la place de parking est occupée (AVAILABLE = false)
             ResultSet rsParkingSpot = psParkingSpot.executeQuery();
             assertTrue(rsParkingSpot.next());
-
-
-            // La place de parking devrait etre marque comme "occupee" (AVAILABLE = false)
             boolean isAvailable = rsParkingSpot.getBoolean("AVAILABLE");
             assertFalse(isAvailable);
-
+            System.out.println("The place " + parkingSpot.getId() +" is occupied");
+            //Verifier mise à jour parking
+            assertTrue(parkingSpotDAO.updateParking(parkingSpot));
         } catch (SQLException e) {
             e.printStackTrace();
             dataBaseTestConfig.closeConnection(con);
@@ -110,6 +107,7 @@ public class ParkingDataBaseIT {
         Connection con = dataBaseTestConfig.getConnection();
         try {
             ParkingService parkingService = new ParkingService(inputReaderUtil, parkingSpotDAO, ticketDAO);
+            ParkingSpot parkingSpot = new ParkingSpot(1, ParkingType.CAR, true);
             //Entre Voiture
             testParkingACar();
             Ticket ticket = ticketDAO.getTicket("ABCDEF");
@@ -132,7 +130,6 @@ public class ParkingDataBaseIT {
                 psTime.setInt(2, ticket.getId());
                 psTime.executeUpdate();
                 psTime.close();
-                System.out.println("ddddddddddddddddddd" + ticketDAO.getTicket("ABCDEF").getInTime());
 
             } catch (Exception er) {
                 er.printStackTrace();
@@ -149,13 +146,12 @@ public class ParkingDataBaseIT {
             System.out.println("In-time: " + exitingVehicleTicket.getInTime());
             System.out.println("Out-time: " + exitingVehicleTicket.getOutTime());
             System.out.println("Price: " + exitingVehicleTicket.getPrice());
-            System.out.println(exitingVehicleTicket.getParkingSpot().isAvailable());
-            //place disponible
-           // boolean isAvailable = exitingVehicleTicket.getParkingSpot().isAvailable();
-            //assertTrue(isAvailable);
-            double timeTest =exitingVehicleTicket.getOutTime().getTime()-exitingVehicleTicket.getInTime().getTime();
-            double priceTest = (Fare.CAR_RATE_PER_HOUR * timeTest)/(60 *60 * 1000);
-            assertEquals(priceTest, exitingVehicleTicket.getPrice(),0.01);
+            System.out.println(parkingSpot.isAvailable());
+            //place devient disponible
+            assertTrue(parkingSpot.isAvailable());
+            double timeTest = exitingVehicleTicket.getOutTime().getTime() - exitingVehicleTicket.getInTime().getTime();
+            double priceTest = (Fare.CAR_RATE_PER_HOUR * timeTest) / (60 * 60 * 1000);
+            assertEquals(priceTest, exitingVehicleTicket.getPrice(), 0.01);
 
         } catch (SQLException e) {
             e.printStackTrace();
@@ -166,5 +162,6 @@ public class ParkingDataBaseIT {
 
 
     }
+
 
 }
