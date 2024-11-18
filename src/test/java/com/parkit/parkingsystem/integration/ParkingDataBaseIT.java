@@ -163,5 +163,24 @@ public class ParkingDataBaseIT {
 
     }
 
+    @Test
+    public void testParkingLotExitRecurringUser() throws Exception {
+        ParkingService parkingService = new ParkingService(inputReaderUtil, parkingSpotDAO, ticketDAO);
+       try {
+           //premier fois d'entre et sortie de vehicule
+           testParkingLotExit();
+            //sortir
+            parkingService.processIncomingVehicle();
+           //Rentre
+            parkingService.processExitingVehicle();
+            double priceTest = 0.75* 1.5 * 0.95;
+            double priceticket =    ticketDAO.getTicket("ABCDEF").getPrice();
+           System.out.println(priceticket+ "yyyyyyyyyyyyyyyyyyyy");
+           assertEquals(priceTest, priceticket, 0.01);
+        }catch (Exception e) {
+           e.printStackTrace();
+       }
+
+    }
 
 }
