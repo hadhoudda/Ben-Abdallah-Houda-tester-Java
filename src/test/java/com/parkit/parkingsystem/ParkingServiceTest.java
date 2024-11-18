@@ -18,6 +18,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.Date;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -134,23 +135,28 @@ public class ParkingServiceTest {
         when(parkingSpotDAO.getNextAvailableSlot(any(ParkingType.class))).thenReturn(0);
 
         //THEN
-        parkingService.getNextParkingNumberIfAvailable();
+        ParkingSpot parkingSpot = parkingService.getNextParkingNumberIfAvailable();
 
         //WHEN
-        verify(parkingSpotDAO, times(1)).getNextAvailableSlot(any(ParkingType.class));
-        assertThat(parkingService.getNextParkingNumberIfAvailable()).isEqualTo(null);
+        verify(parkingSpotDAO, times(1)).getNextAvailableSlot(ParkingType.CAR);
+        assertNull(parkingSpot);
+
     }
 
     @Test
-    public void testGetNextParkingNumberIfAvailableParkingNumberWrongArgument() {
+    public void testGetNextParkingNumberIfAvailableParkingNumberWrongArgument() throws Exception {
         //GIVEN
+        //3 : valeur incorrect
         when(inputReaderUtil.readSelection()).thenReturn(3);
 
         //THEN
-        parkingService.getNextParkingNumberIfAvailable();
+        ParkingSpot parkingSpot = parkingService.getNextParkingNumberIfAvailable();
 
         //WHEN
-        assertThat(parkingService.getNextParkingNumberIfAvailable()).isEqualTo(null);
+        assertNull(parkingSpot);
+
+        // Verifie que aucune interaction avec parkingSpotDAO ne devrait avoir lieu
+        verifyZeroInteractions(parkingSpotDAO);
     }
 
 }

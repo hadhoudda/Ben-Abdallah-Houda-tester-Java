@@ -47,7 +47,6 @@ public class ParkingDataBaseIT {
         dataBasePrepareService = new DataBasePrepareService();
     }
 
-
     @BeforeEach
     private void setUpPerTest() throws Exception {
         // Simule la lecture de la voiture et l'attribution de la place
@@ -62,8 +61,6 @@ public class ParkingDataBaseIT {
 
     @Test
     public void testParkingACar() throws Exception {
-        //dataBasePrepareService.clearDataBaseEntries();
-
         // GIVEN
         ParkingService parkingService = new ParkingService(inputReaderUtil, parkingSpotDAO, ticketDAO);
         ParkingSpot parkingSpot = new ParkingSpot(1, ParkingType.CAR, true);
@@ -159,8 +156,6 @@ public class ParkingDataBaseIT {
         } finally {
             dataBaseTestConfig.closeConnection(con);
         }
-
-
     }
 
     @Test
@@ -169,13 +164,12 @@ public class ParkingDataBaseIT {
        try {
            //premier fois d'entre et sortie de vehicule
            testParkingLotExit();
-            //sortir
-            parkingService.processIncomingVehicle();
            //Rentre
+            parkingService.processIncomingVehicle();
+           //sortir
             parkingService.processExitingVehicle();
             double priceTest = 0.75* 1.5 * 0.95;
             double priceticket =    ticketDAO.getTicket("ABCDEF").getPrice();
-           System.out.println(priceticket+ "yyyyyyyyyyyyyyyyyyyy");
            assertEquals(priceTest, priceticket, 0.01);
         }catch (Exception e) {
            e.printStackTrace();
