@@ -70,20 +70,14 @@ public class ParkingDataBaseIT {
 
         // THEN
         Connection con = dataBaseTestConfig.getConnection();
-        //requetes
         String ticketSql = "SELECT * FROM ticket WHERE VEHICLE_REG_NUMBER = 'ABCDEF'";
         String parkingSpotSql = "SELECT AVAILABLE FROM parking WHERE PARKING_NUMBER = 1";
 
         try {
-            // Envoi des requetes
             PreparedStatement psTicket = con.prepareStatement(ticketSql);
             PreparedStatement psParkingSpot = con.prepareStatement(parkingSpotSql);
-
-            // Verifie que le ticket a enregistre dans la bdd
             ResultSet rsTicket = psTicket.executeQuery();
             assertTrue(rsTicket.next());
-
-            // Verifie que la place de parking est occupée (AVAILABLE = false)
             ResultSet rsParkingSpot = psParkingSpot.executeQuery();
             assertTrue(rsParkingSpot.next());
             boolean isAvailable = rsParkingSpot.getBoolean("AVAILABLE");
@@ -108,7 +102,7 @@ public class ParkingDataBaseIT {
             //Entre Voiture
             testParkingACar();
             Ticket ticket = ticketDAO.getTicket("ABCDEF");
-            System.out.println("/////////temps de stationnement = 45 minute//////////");
+            System.out.println("========= temps de stationnement = 45 minute==========");
             Date inTime = new Date();
             inTime.setTime(inTime.getTime() - (45 * 60 * 1000));
             System.out.println("+++++++++++++++++");

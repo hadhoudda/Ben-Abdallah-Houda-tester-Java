@@ -106,6 +106,7 @@ public class TicketDAO {
         return false;
     }
 
+
     /**
      * count how many tickets are recorded for a vehicle
      *
@@ -114,16 +115,17 @@ public class TicketDAO {
      */
     public int getNbTicket(String vehicleRegNumber) {
         int countTicket = 0;
-        String COUNT_TICKET = "SELECT COUNT(*) AS countTicket FROM ticket WHERE VEHICLE_REG_NUMBER = ? ";
         Connection con = null;
         try {
             con = dataBaseConfig.getConnection();
-            PreparedStatement ps = con.prepareStatement(COUNT_TICKET);
+            PreparedStatement ps = con.prepareStatement(DBConstants.GET_NB_TICKET);
             ps.setString(1, vehicleRegNumber);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
                 countTicket = rs.getInt(1);
             }
+            dataBaseConfig.closeResultSet(rs);
+            dataBaseConfig.closePreparedStatement(ps);
         } catch (Exception ex) {
             logger.error("Error counting tickets for vehicle: " + vehicleRegNumber, ex);
         } finally {

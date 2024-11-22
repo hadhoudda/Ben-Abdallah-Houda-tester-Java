@@ -35,11 +35,9 @@ public class ParkingService {
                 parkingSpot.setAvailable(false);
                 parkingSpotDAO.updateParking(parkingSpot);//allot this parking space and mark it's availability as false
                 int countTick = ticketDAO.getNbTicket(getVehichleRegNumber());
-                if (countTick > 1){
+                if (countTick > 0) {
                     System.out.println("Heureux de vous revoir ! En tant qu’utilisateur régulier de notre parking, " +
                             "vous allez obtenir une remise de 5%");
-                }else{
-                    System.out.println("Bienvenue!");
                 }
                 Date inTime = new Date();
                 Ticket ticket = new Ticket();
