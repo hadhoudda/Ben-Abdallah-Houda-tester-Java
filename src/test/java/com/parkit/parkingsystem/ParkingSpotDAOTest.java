@@ -4,10 +4,7 @@ import com.parkit.parkingsystem.config.DataBaseConfig;
 import com.parkit.parkingsystem.constants.DBConstants;
 import com.parkit.parkingsystem.constants.ParkingType;
 import com.parkit.parkingsystem.dao.ParkingSpotDAO;
-import com.parkit.parkingsystem.integration.service.DataBasePrepareService;
 import com.parkit.parkingsystem.model.ParkingSpot;
-import com.parkit.parkingsystem.service.ParkingService;
-import com.parkit.parkingsystem.util.InputReaderUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -40,23 +37,20 @@ public class ParkingSpotDAOTest {
 
     @BeforeEach
     public void setUp() {
-        // Ce setup est exécuté avant chaque test pour préparer les mocks
     }
 
     @Test
     public void testUpdateParking_whenUpdateSucceeds() throws Exception {
-        // GIVEN
+        //Given
         ParkingSpot parkingSpot = new ParkingSpot(101, ParkingType.CAR, false);
-
         when(dataBaseConfig.getConnection()).thenReturn(connection);
         when(connection.prepareStatement(any(String.class))).thenReturn(preparedStatement);
         when(preparedStatement.executeUpdate()).thenReturn(1);
-
-        // WHEN
+        //When
         boolean result = parkingSpotDAO.updateParking(parkingSpot);
-
-        // THEN
+        //Then
         assertTrue(result);
+        //Verify
         verify(preparedStatement, times(1)).setBoolean(1, parkingSpot.isAvailable());
         verify(preparedStatement, times(1)).setInt(2, parkingSpot.getId());
         verify(preparedStatement, times(1)).executeUpdate();
@@ -64,19 +58,16 @@ public class ParkingSpotDAOTest {
 
     @Test
     public void testUpdateParking_whenUpdateFails() throws Exception {
-        // GIVEN
+        //Given
         ParkingSpot parkingSpot = new ParkingSpot(101, ParkingType.CAR, false);
-
         when(dataBaseConfig.getConnection()).thenReturn(connection);
         when(connection.prepareStatement(any(String.class))).thenReturn(preparedStatement);
-        // Simuler une mise à jour échouée
-        when(preparedStatement.executeUpdate()).thenReturn(0);
-
-        // WHEN
+        when(preparedStatement.executeUpdate()).thenReturn(0);//Simulate a failed update
+        //When
         boolean result = parkingSpotDAO.updateParking(parkingSpot);
-
-        // THEN
+        //Then
         assertFalse(result);
+        //Verify
         verify(preparedStatement, times(1)).setBoolean(1, parkingSpot.isAvailable());
         verify(preparedStatement, times(1)).setInt(2, parkingSpot.getId());
         verify(preparedStatement, times(1)).executeUpdate();
@@ -84,38 +75,34 @@ public class ParkingSpotDAOTest {
 
     @Test
     public void testUpdateParking_whenSQLExceptionOccurs() throws Exception {
-        // GIVEN
+        //Given
         ParkingSpot parkingSpot = new ParkingSpot(101, ParkingType.CAR, false);
-
         when(dataBaseConfig.getConnection()).thenReturn(connection);
         when(connection.prepareStatement(any(String.class))).thenThrow(new RuntimeException("Database error"));
-
-        // WHEN
+        //When
         boolean result = parkingSpotDAO.updateParking(parkingSpot);
-
-        // THEN
+        //Then
         assertFalse(result);
+        //Verify
         verify(preparedStatement, never()).setBoolean(anyInt(), anyBoolean());
         verify(preparedStatement, never()).executeUpdate();
     }
 
-
     @Test
     public void testGetNextAvailableSlot_ValidParkingType() throws Exception {
-
+        //Given
         ParkingType parkingType = ParkingType.CAR;
         when(parkingSpotDAO.dataBaseConfig.getConnection()).thenReturn(connection);
         when(connection.prepareStatement(DBConstants.GET_NEXT_PARKING_SPOT)).thenReturn(preparedStatement);
         when(connection.prepareStatement(DBConstants.GET_NEXT_PARKING_SPOT)).thenReturn(preparedStatement);
         when(preparedStatement.executeQuery()).thenReturn(resultSet);
         when(resultSet.next()).thenReturn(true);
-        when(resultSet.getInt(1)).thenReturn(5); // ID du parking
-
-        //WHEN
+        when(resultSet.getInt(1)).thenReturn(5); //Parking ID
+        //When
         int availableSlot = parkingSpotDAO.getNextAvailableSlot(ParkingType.CAR);
-
-        // THEN
+        //Then
         assertEquals(5, availableSlot);
+        //Verify
         verify(preparedStatement).setString(1, parkingType.toString());
         verify(preparedStatement).executeQuery();
         verify(resultSet).next();
@@ -123,18 +110,17 @@ public class ParkingSpotDAOTest {
 
     @Test
     public void testGetNextAvailableSlot_NoResult() throws Exception {
-
+        //Given
         ParkingType parkingType = ParkingType.CAR;
         when(parkingSpotDAO.dataBaseConfig.getConnection()).thenReturn(connection);
         when(connection.prepareStatement(DBConstants.GET_NEXT_PARKING_SPOT)).thenReturn(preparedStatement);
         when(preparedStatement.executeQuery()).thenReturn(resultSet);
-        when(resultSet.next()).thenReturn(false); // Aucun résultat
-
-        // WHEN
+        when(resultSet.next()).thenReturn(false);
+        //When
         int availableSlot = parkingSpotDAO.getNextAvailableSlot(parkingType);
-
-        // Vérification que le résultat est -1 si aucun slot disponible
-        assertEquals(-1, availableSlot);
+        //Then
+        assertEquals(-1, availableSlot);//Checking that the result is -1 if no slots available
+        //Verify
         verify(preparedStatement).setString(1, parkingType.toString());
         verify(preparedStatement).executeQuery();
         verify(resultSet).next();
@@ -142,16 +128,12 @@ public class ParkingSpotDAOTest {
 
     @Test
     public void testGetNextAvailableSlot_Exception() throws Exception {
-        // GIVEN
-        when(parkingSpotDAO.dataBaseConfig.getConnection()).thenReturn(connection);
-
+        // Given
         ParkingType parkingType = ParkingType.CAR;
-
-        // Simuler une exception SQL lors de l'exécution de la requête
-        when(connection.prepareStatement(DBConstants.GET_NEXT_PARKING_SPOT)).thenThrow(new SQLException("Database error"));
-
-        // Appel de la méthode
-        int availableSlot = parkingSpotDAO.getNextAvailableSlot(parkingType);
-}
+        when(parkingSpotDAO.dataBaseConfig.getConnection()).thenReturn(connection);
+        when(connection.prepareStatement(DBConstants.GET_NEXT_PARKING_SPOT)).thenThrow(new SQLException("Database error"));//Simulate SQL exception during query execution
+        //When
+        parkingSpotDAO.getNextAvailableSlot(parkingType);
+    }
 
 }

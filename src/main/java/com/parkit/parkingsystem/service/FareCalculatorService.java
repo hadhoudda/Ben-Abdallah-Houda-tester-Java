@@ -4,17 +4,21 @@ import com.parkit.parkingsystem.constants.Fare;
 import com.parkit.parkingsystem.model.Ticket;
 
 public class FareCalculatorService {
-    //free station duration 30 minutes
-    final double DURATION_LIMIT = 30 * 60 * 1000;
 
+    /**
+     * the method that to calculi the price of a ticket
+     * @param ticket
+     * @param discount
+     */
     public void calculateFare(Ticket ticket, boolean discount) {
+        double inHour = ticket.getInTime().getTime();
+        double outHour = ticket.getOutTime().getTime();
+        double duration = outHour - inHour; //time in ms
+        final double DURATION_LIMIT = 30 * 60 * 1_000;//free station duration 30 minutes
+
         if ((ticket.getOutTime() == null) || (ticket.getOutTime().before(ticket.getInTime()))) {
             throw new IllegalArgumentException("Out time provided is incorrect:" + ticket.getOutTime().toString());
         }
-
-        double inHour = ticket.getInTime().getTime();
-        double outHour = ticket.getOutTime().getTime();
-        double duration = outHour - inHour;
 
         //a price of 0 if the duration in the car park is less than 30 minutes
         if (duration < DURATION_LIMIT) {

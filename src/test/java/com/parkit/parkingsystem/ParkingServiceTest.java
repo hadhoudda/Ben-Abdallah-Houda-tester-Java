@@ -60,99 +60,85 @@ public class ParkingServiceTest {
 
     @Test
     public void processExitingVehicleTest() throws Exception {
-        //GIVEN
+        //Arrange
         when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("ABCDEF");
         when(ticketDAO.getNbTicket(anyString())).thenReturn(1);
         when(ticketDAO.getTicket(anyString())).thenReturn(getTicket());
         when(ticketDAO.updateTicket(any(Ticket.class))).thenReturn(true);
-
-        //WHEN
+        //Act
         parkingService.processExitingVehicle();
-
-        //THEN
+        //Verify
         verify(inputReaderUtil, Mockito.times(1)).readVehicleRegistrationNumber();
         verify(ticketDAO, Mockito.times(1)).getNbTicket(anyString());
         verify(parkingSpotDAO, Mockito.times(1)).updateParking(any(ParkingSpot.class));
-
     }
 
     @Test
     public void testProcessIncomingVehicle() throws Exception {
-        //GIVEN
+        //Arrange
         when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("ABCDEF");
         when(inputReaderUtil.readSelection()).thenReturn(1);
         when(parkingSpotDAO.getNextAvailableSlot(any(ParkingType.class))).thenReturn(1);
         when(ticketDAO.getNbTicket("ABCDEF")).thenReturn(1);
-
-        //WHEN
+        //Act
         parkingService.processIncomingVehicle();
-
-        //THEN
+        //Assert
         verify(parkingSpotDAO, Mockito.times(1)).updateParking(any(ParkingSpot.class));
         verify(ticketDAO, Mockito.times(1)).saveTicket(any(Ticket.class));
     }
 
     @Test
     public void processExitingVehicleTestUnableUpdate() throws Exception {
-        //GIVEN
+        //Arrange
         when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("ABCDEF");
         when(ticketDAO.getNbTicket(anyString())).thenReturn(1);
         when(ticketDAO.getTicket(anyString())).thenReturn(getTicket());
         when(ticketDAO.updateTicket(any(Ticket.class))).thenReturn(false);
-
-        //WHEN
+        //Act
         parkingService.processExitingVehicle();
-
-        //THEN
+        //Assert
         verify(inputReaderUtil, Mockito.times(1)).readVehicleRegistrationNumber();
         verify(ticketDAO, Mockito.times(1)).updateTicket(any(Ticket.class));
     }
 
     @Test
     public void testGetNextParkingNumberIfAvailable() {
-        //GIVEN
+        //Arrange
         when(inputReaderUtil.readSelection()).thenReturn(1);
         when(parkingSpotDAO.getNextAvailableSlot(any(ParkingType.class))).thenReturn(1);
-
-        //THEN
+        //Act
         ParkingSpot result = new ParkingSpot(1, ParkingType.CAR, true);
         parkingService.getNextParkingNumberIfAvailable();
-
-        //WHEN
+        //Verify
         verify(parkingSpotDAO, times(1)).getNextAvailableSlot(any(ParkingType.class));
         verifyNoMoreInteractions(parkingSpotDAO);
+        //Assert
         assertThat(parkingService.getNextParkingNumberIfAvailable()).isEqualTo(result);
     }
 
     @Test
     public void testGetNextParkingNumberIfAvailableParkingNumberNotFound() {
-        //GIVEN
+        //Arrange
         when(inputReaderUtil.readSelection()).thenReturn(1);
         when(parkingSpotDAO.getNextAvailableSlot(any(ParkingType.class))).thenReturn(0);
-
-        //THEN
+        //Act
         ParkingSpot parkingSpot = parkingService.getNextParkingNumberIfAvailable();
-
-        //WHEN
+        //Verify
         verify(parkingSpotDAO, times(1)).getNextAvailableSlot(ParkingType.CAR);
+        //Assert
         assertNull(parkingSpot);
-
     }
 
     @Test
     public void testGetNextParkingNumberIfAvailableParkingNumberWrongArgument() throws Exception {
-        //GIVEN
-        //3 : valeur incorrect
-        when(inputReaderUtil.readSelection()).thenReturn(3);
-
-        //THEN
+        //Arrange
+        when(inputReaderUtil.readSelection()).thenReturn(3);//3 is incorrect value
+        //Act
         ParkingSpot parkingSpot = parkingService.getNextParkingNumberIfAvailable();
-
-        //WHEN
-        assertNull(parkingSpot);
-
-        // Verifie que aucune interaction avec parkingSpotDAO ne devrait avoir lieu
+        //Verify
         verifyZeroInteractions(parkingSpotDAO);
+        //Assert
+        assertNull(parkingSpot);
     }
 
 }
