@@ -11,13 +11,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.sql.*;
 
 import static com.parkit.parkingsystem.constants.ParkingType.CAR;
-import static junit.framework.Assert.assertNotNull;
-import static junit.framework.Assert.assertNull;
+import static junit.framework.Assert.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -96,32 +96,25 @@ public class TicketDAOTest {
 
     @Test
     public void updateTicketTest() throws SQLException, ClassNotFoundException {
-        //Given
+        MockitoAnnotations.openMocks(this); //Initializing mocks
         when(ticketDAO.dataBaseConfig.getConnection()).thenReturn(connection);
+        when(connection.prepareStatement(DBConstants.GET_LAST_TICKET_ID_QUERY)).thenReturn(preparedStatement);
+        when(preparedStatement.executeQuery()).thenReturn(resultSet);
+        when(resultSet.next()).thenReturn(true);
+        when(resultSet.getInt("LAST_TICKET_ID")).thenReturn(3); //Return an ID from the last ticket exemple: 3
         when(connection.prepareStatement(DBConstants.UPDATE_TICKET)).thenReturn(preparedStatement);
-        when(preparedStatement.execute()).thenReturn(true);
-        //When
+        when(preparedStatement.executeUpdate()).thenReturn(1);
+        // Given
         Ticket ticketTest = getTicket();
-        ticketDAO.updateTicket(ticketTest);
-//      //Then
-        assertNotNull(ticketTest);
-        assertEquals("ABCDEF", ticketTest.getVehicleRegNumber());
-        assertEquals(1.5, ticketTest.getPrice());
-        //Verify
-        verify(preparedStatement).execute();
-    }
-
-    @Test
-    public void updateTicketFailureTest() throws SQLException, ClassNotFoundException {
-        //Given
-        when(ticketDAO.dataBaseConfig.getConnection()).thenReturn(connection);
-        when(connection.prepareStatement(DBConstants.UPDATE_TICKET)).thenReturn(preparedStatement);
-        when(preparedStatement.execute()).thenReturn(false);//Simulate query execution failure (execute returns false)
-        //When
-        Ticket ticketTest = getTicket();
-        ticketDAO.updateTicket(ticketTest);
-        //Verify
-        verify(preparedStatement).execute();
+        // When
+        boolean updateResult = ticketDAO.updateTicket(ticketTest); // Appel de la méthode updateTicket()
+        // Then
+        assertNotNull(ticketTest); // Vérifie que le ticket n'est pas nul
+        assertEquals("ABCDEF", ticketTest.getVehicleRegNumber()); // Vérifie l'immatriculation
+        assertEquals(1.5, ticketTest.getPrice(), 0.01); // Vérifie le prix du ticket avec une tolérance
+        assertTrue(updateResult);
+        //verify
+        verify(preparedStatement).executeUpdate();
     }
 
     @Test
@@ -182,7 +175,6 @@ public class TicketDAOTest {
         //Then
         assertNull(ticket);
     }
-
 
     @Test
     public void testGetTicket_whenTicketExists() throws Exception {

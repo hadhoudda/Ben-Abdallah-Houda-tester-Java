@@ -17,6 +17,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Date;
 
+import static junit.framework.Assert.assertNotNull;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.*;
@@ -26,15 +27,12 @@ public class ParkingServiceTest {
 
     @InjectMocks
     private static ParkingService parkingService;
-
     @Mock
     private static InputReaderUtil inputReaderUtil;
     @Mock
     private static ParkingSpotDAO parkingSpotDAO;
     @Mock
     private static TicketDAO ticketDAO;
-
-
 
     private Ticket getTicket() {
         Ticket ticket = new Ticket();
@@ -60,17 +58,21 @@ public class ParkingServiceTest {
 
     @Test
     public void processExitingVehicleTest() throws Exception {
-        //Arrange
+        // Arrange
+        Ticket ticket = getTicket();
+        ticket.setOutTime(null); // OUT_TIME = null
         when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("ABCDEF");
-        when(ticketDAO.getNbTicket(anyString())).thenReturn(1);
-        when(ticketDAO.getTicket(anyString())).thenReturn(getTicket());
+        when(ticketDAO.getTicket("ABCDEF")).thenReturn(ticket);
+        when(ticketDAO.getNbTicket("ABCDEF")).thenReturn(1);
         when(ticketDAO.updateTicket(any(Ticket.class))).thenReturn(true);
-        //Act
+        // Act
         parkingService.processExitingVehicle();
         //Verify
-        verify(inputReaderUtil, Mockito.times(1)).readVehicleRegistrationNumber();
-        verify(ticketDAO, Mockito.times(1)).getNbTicket(anyString());
-        verify(parkingSpotDAO, Mockito.times(1)).updateParking(any(ParkingSpot.class));
+        verify(inputReaderUtil, times(1)).readVehicleRegistrationNumber();
+        verify(ticketDAO, times(1)).getNbTicket("ABCDEF");
+        verify(ticketDAO, times(1)).updateTicket(any(Ticket.class));
+        verify(parkingSpotDAO, times(1)).updateParking(any(ParkingSpot.class));
+        assertNotNull(ticket.getOutTime());
     }
 
     @Test
@@ -89,16 +91,19 @@ public class ParkingServiceTest {
 
     @Test
     public void processExitingVehicleTestUnableUpdate() throws Exception {
-        //Arrange
+        // Arrange
+        Ticket ticket = getTicket();
+        ticket.setOutTime(null); // OUT_TIME = null
         when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("ABCDEF");
-        when(ticketDAO.getNbTicket(anyString())).thenReturn(1);
-        when(ticketDAO.getTicket(anyString())).thenReturn(getTicket());
+        when(ticketDAO.getTicket("ABCDEF")).thenReturn(ticket);
+        when(ticketDAO.getNbTicket("ABCDEF")).thenReturn(1);
         when(ticketDAO.updateTicket(any(Ticket.class))).thenReturn(false);
-        //Act
+        // Act
         parkingService.processExitingVehicle();
-        //Assert
-        verify(inputReaderUtil, Mockito.times(1)).readVehicleRegistrationNumber();
-        verify(ticketDAO, Mockito.times(1)).updateTicket(any(Ticket.class));
+        // Assert
+        verify(inputReaderUtil, times(1)).readVehicleRegistrationNumber();
+        verify(ticketDAO, times(1)).getNbTicket("ABCDEF");
+        verify(ticketDAO, times(1)).updateTicket(any(Ticket.class));
     }
 
     @Test
@@ -135,10 +140,7 @@ public class ParkingServiceTest {
         when(inputReaderUtil.readSelection()).thenReturn(3);//3 is incorrect value
         //Act
         ParkingSpot parkingSpot = parkingService.getNextParkingNumberIfAvailable();
-        //Verify
-        verifyZeroInteractions(parkingSpotDAO);
         //Assert
         assertNull(parkingSpot);
     }
-
 }

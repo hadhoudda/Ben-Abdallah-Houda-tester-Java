@@ -135,5 +135,4 @@ public class ParkingSpotDAOTest {
         //When
         parkingSpotDAO.getNextAvailableSlot(parkingType);
     }
-
 }

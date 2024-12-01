@@ -34,7 +34,6 @@ public class ParkingDataBaseIT {
     private static ParkingSpotDAO parkingSpotDAO;
     private static TicketDAO ticketDAO;
     private static DataBasePrepareService dataBasePrepareService;
-
     @Mock
     private static InputReaderUtil inputReaderUtil;
 
@@ -92,6 +91,7 @@ public class ParkingDataBaseIT {
     @Test
     public void testParkingLotExit() throws Exception {
         //Given
+        dataBasePrepareService.clearDataBaseEntries();
         Connection con = dataBaseTestConfig.getConnection();
         try {
             ParkingService parkingService = new ParkingService(inputReaderUtil, parkingSpotDAO, ticketDAO);
@@ -100,7 +100,7 @@ public class ParkingDataBaseIT {
             testParkingACar();
             Ticket ticket = ticketDAO.getTicket("ABCDEF");
             Date inTime = new Date();
-            inTime.setTime(inTime.getTime() - (45 * 60 * 1000));//45 minute
+            inTime.setTime(inTime.getTime() - (60 * 60 * 1000));//60 minute
             System.out.println("Incoming vehicle ticket found: " + ticket.getId());
             System.out.println("In-time: " + inTime);
             //entry time update
@@ -118,7 +118,7 @@ public class ParkingDataBaseIT {
             }
             //When
             parkingService.processExitingVehicle();
-            // Assert
+            // Then
             Ticket exitingVehicleTicket = ticketDAO.getTicket("ABCDEF");
             assertNotNull(exitingVehicleTicket);
             System.out.println("Exiting vehicle ticket found: " + exitingVehicleTicket.getId());
@@ -141,20 +141,73 @@ public class ParkingDataBaseIT {
 
     @Test
     public void testParkingLotExitRecurringUser() throws Exception {
-        ParkingService parkingService = new ParkingService(inputReaderUtil, parkingSpotDAO, ticketDAO);
+        //Given
+        dataBasePrepareService.clearDataBaseEntries();
+        Connection con = dataBaseTestConfig.getConnection();
         try {
-            //first time entering and exiting vehicle
-            testParkingLotExit();
-            //second time entering vehicle
+            ParkingService parkingService = new ParkingService(inputReaderUtil, parkingSpotDAO, ticketDAO);
+            ParkingSpot parkingSpot = new ParkingSpot(1, ParkingType.CAR, true);
+            //When: first entering vehicle
             parkingService.processIncomingVehicle();
-            //second time exiting vehicle
+            Ticket firstIncomingVehicleTicket = ticketDAO.getTicket("ABCDEF");
+            Date inTime = new Date();
+            inTime.setTime(inTime.getTime() - (60 * 60 * 1000));//60 minute
+            //entry time update
+            try {
+                String timeSql = "UPDATE ticket SET IN_TIME = ? WHERE ID = ?";
+                PreparedStatement psTime = con.prepareStatement(timeSql);
+                Timestamp timestamp = new Timestamp(inTime.getTime());
+                psTime.setTimestamp(1, timestamp);
+                psTime.setInt(2, firstIncomingVehicleTicket.getId());
+                psTime.executeUpdate();
+                psTime.close();
+            } catch (Exception er) {
+                er.printStackTrace();
+                throw new RuntimeException("Failed to update test ticket with earlier inTime value");
+            }
+            //When: first exiting vehicle
             parkingService.processExitingVehicle();
-            double priceTest = 0.75 * 1.5 * 0.95;
-            double priceticket = ticketDAO.getTicket("ABCDEF").getPrice();
-            assertEquals(priceTest, priceticket, 0.01);
-        } catch (Exception e) {
-            e.printStackTrace();
+            Ticket firstExitingVehicleTicket = ticketDAO.getTicket("ABCDEF");
+            //Then
+            assertNotNull(firstExitingVehicleTicket);
+            System.out.println("Exiting vehicle ticket found: " + firstExitingVehicleTicket.getId());
+            System.out.println("Price: " + firstExitingVehicleTicket.getPrice());
+            System.out.println(parkingSpot.isAvailable());
+            //place becomes available
+            assertTrue(parkingSpot.isAvailable());
+            double timeTest = firstExitingVehicleTicket.getOutTime().getTime() - firstExitingVehicleTicket.getInTime().getTime();
+            double priceTest = (Fare.CAR_RATE_PER_HOUR * timeTest) / (60 * 60 * 1000);
+            assertEquals(priceTest, firstExitingVehicleTicket.getPrice(), 0.01);
+            //When: second entering vehicle
+            parkingService.processIncomingVehicle();
+            Ticket secondtIncomingVehicleTicket = ticketDAO.getTicket("ABCDEF");
+            secondtIncomingVehicleTicket.setPrice(ticketDAO.getTicket("ABCDEF").getPrice());
+            //entry time update
+            try {
+                String timeSql = "UPDATE ticket SET IN_TIME = ? WHERE ID = ?";
+                PreparedStatement psTime = con.prepareStatement(timeSql);
+                Timestamp timestamp = new Timestamp(inTime.getTime());
+                psTime.setTimestamp(1, timestamp);
+                psTime.setInt(2, secondtIncomingVehicleTicket.getId());
+                psTime.executeUpdate();
+                psTime.close();
+            } catch (Exception er) {
+                er.printStackTrace();
+                throw new RuntimeException("Failed to update test ticket with earlier inTime value");
+            }
+            //When: second exiting vehicle
+            parkingService.processExitingVehicle();
+            Ticket secondtExitingVehicleTicket = ticketDAO.getTicket("ABCDEF");
+            //Then
+            assertNotNull(firstExitingVehicleTicket);
+            System.out.println("Exiting vehicle ticket found: " + secondtExitingVehicleTicket.getId());
+            System.out.println("Price: " + parkingService.someOtherMethod());
+            //place becomes available
+            assertTrue(parkingSpot.isAvailable());
+            double secondpriceTest = (Fare.CAR_RATE_PER_HOUR * timeTest * 0.95) / (60 * 60 * 1000);
+            assertEquals(secondpriceTest, parkingService.someOtherMethod(), 0.01);
+        } finally {
+            dataBaseTestConfig.closeConnection(con);
         }
     }
-
 }

@@ -16,9 +16,7 @@ import java.sql.Timestamp;
 public class TicketDAO {
 
     private static final Logger logger = LogManager.getLogger("TicketDAO");
-
     public DataBaseConfig dataBaseConfig = new DataBaseConfig();
-
     /**
      * A methode that to save the ticket to the database
      *
@@ -90,22 +88,36 @@ public class TicketDAO {
      */
     public boolean updateTicket(Ticket ticket) {
         Connection con = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
         try {
             con = dataBaseConfig.getConnection();
-            PreparedStatement ps = con.prepareStatement(DBConstants.UPDATE_TICKET);
-            ps.setDouble(1, ticket.getPrice());
-            ps.setTimestamp(2, new Timestamp(ticket.getOutTime().getTime()));
-            ps.setInt(3, ticket.getId());
-            ps.execute();
-            return true;
+            // Step 1: Retrieve the last ticket ID
+            ps = con.prepareStatement(DBConstants.GET_LAST_TICKET_ID_QUERY);
+            ps.setString(1, ticket.getVehicleRegNumber());
+            rs = ps.executeQuery();
+            if (rs.next()) {
+                int lastTicketId = rs.getInt("LAST_TICKET_ID");
+                // Check if a ticket was found
+                if (lastTicketId > 0) {
+                    //Step 2: Update the latest ticket
+                    ps = con.prepareStatement(DBConstants.UPDATE_TICKET);
+                    ps.setDouble(1, ticket.getPrice());
+                    ps.setTimestamp(2, new Timestamp(ticket.getOutTime().getTime()));
+                    ps.setInt(3, lastTicketId);  //Last ticket ID
+                    int affectedRows = ps.executeUpdate();
+                    if (affectedRows > 0) {
+                        return true;
+                    }
+                }
+            }
         } catch (Exception ex) {
-            logger.error("Error saving ticket info", ex);
+            logger.error("Error updating ticket info", ex);
         } finally {
             dataBaseConfig.closeConnection(con);
         }
         return false;
     }
-
 
     /**
      * count how many tickets are recorded for a vehicle
@@ -133,5 +145,4 @@ public class TicketDAO {
         }
         return countTicket;
     }
-
 }

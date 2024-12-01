@@ -12,11 +12,9 @@ import org.apache.logging.log4j.Logger;
 import java.util.Date;
 
 public class ParkingService {
-
+    private double lastCalculatedFare;  //Instance variable to store the last calculated rate
     private static final Logger logger = LogManager.getLogger("ParkingService");
-
     private static FareCalculatorService fareCalculatorService = new FareCalculatorService();
-
     private InputReaderUtil inputReaderUtil;
     private ParkingSpotDAO parkingSpotDAO;
     private TicketDAO ticketDAO;
@@ -27,6 +25,9 @@ public class ParkingService {
         this.ticketDAO = ticketDAO;
     }
 
+    /**
+     * method of incoming out of Vehicle
+     */
     public void processIncomingVehicle() {
         try {
             ParkingSpot parkingSpot = getNextParkingNumberIfAvailable();
@@ -34,8 +35,8 @@ public class ParkingService {
                 String vehicleRegNumber = getVehichleRegNumber();
                 parkingSpot.setAvailable(false);
                 parkingSpotDAO.updateParking(parkingSpot);//allot this parking space and mark it's availability as false
-                int countTick = ticketDAO.getNbTicket(getVehichleRegNumber());
-                if (countTick > 0) {
+                int countTick = ticketDAO.getNbTicket(vehicleRegNumber);
+                if (countTick >= 1) {
                     System.out.println("Heureux de vous revoir ! En tant qu’utilisateur régulier de notre parking, " +
                             "vous allez obtenir une remise de 5%");
                 }
@@ -63,6 +64,10 @@ public class ParkingService {
         return inputReaderUtil.readVehicleRegistrationNumber();
     }
 
+    /**
+     * method to retrieve the next available parking lot depending on the type of vehicle.
+     * @return
+     */
     public ParkingSpot getNextParkingNumberIfAvailable() {
         int parkingNumber = 0;
         ParkingSpot parkingSpot = null;
@@ -82,6 +87,10 @@ public class ParkingService {
         return parkingSpot;
     }
 
+    /**
+     * return type parkin
+     * @return Car or Bike
+     */
     private ParkingType getVehichleType() {
         System.out.println("Please select vehicle type from menu");
         System.out.println("1 CAR");
@@ -101,24 +110,25 @@ public class ParkingService {
         }
     }
 
+    /**
+     * method of exiting out of Vehicle
+     */
     public void processExitingVehicle() {
-        try {
-            String vehicleRegNumber = getVehichleRegNumber();
-            Ticket ticket = ticketDAO.getTicket(vehicleRegNumber);
+        try{
+        String vehicleRegNumber = getVehichleRegNumber();
+        int countTickets = ticketDAO.getNbTicket(vehicleRegNumber);
+        Ticket ticket = ticketDAO.getTicket(vehicleRegNumber);
             Date outTime = new Date();
             ticket.setOutTime(outTime);
-
             //checks if the user is a recurring
-            if (ticketDAO.getNbTicket(vehicleRegNumber) > 1) {
-                fareCalculatorService.calculateFare(ticket, true);
-            } else {
-                fareCalculatorService.calculateFare(ticket);
-            }
-
+            boolean discount = countTickets > 1 ;
+            fareCalculatorService.calculateFare(ticket, discount);
             if (ticketDAO.updateTicket(ticket)) {
                 ParkingSpot parkingSpot = ticket.getParkingSpot();
                 parkingSpot.setAvailable(true);
                 parkingSpotDAO.updateParking(parkingSpot);
+                // Store price in instance variable
+                lastCalculatedFare = ticket.getPrice();
                 System.out.println("Please pay the parking fare:" + ticket.getPrice());
                 System.out.println("Recorded out-time for vehicle number:" + ticket.getVehicleRegNumber() + " is:" + outTime);
             } else {
@@ -127,5 +137,14 @@ public class ParkingService {
         } catch (Exception e) {
             logger.error("Unable to process exiting vehicle", e);
         }
+    }
+
+    /**
+     *
+     * method for calculating the price of a ticket after leaving the parking lot
+     * @return price of a ticket
+     */
+    public double someOtherMethod() {
+        return lastCalculatedFare;
     }
 }

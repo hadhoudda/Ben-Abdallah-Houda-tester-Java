@@ -13,10 +13,13 @@ import java.sql.ResultSet;
 
 public class ParkingSpotDAO {
     private static final Logger logger = LogManager.getLogger("ParkingSpotDAO");
-
-
     public DataBaseConfig dataBaseConfig = new DataBaseConfig();
 
+    /**
+     * method of retrieving the next available parking space for a specific parking type
+     * @param parkingType
+     * @return int > 1 : spot is available /int > 1 : spot is not available
+     */
     public int getNextAvailableSlot(ParkingType parkingType) {
         Connection con = null;
         int result = -1;
@@ -39,6 +42,11 @@ public class ParkingSpotDAO {
         return result;
     }
 
+    /**
+     * update spot in parking
+     * @param parkingSpot
+     * @return true or false
+     */
     public boolean updateParking(ParkingSpot parkingSpot) {
         //update the availability fo that parking slot
         Connection con = null;
@@ -57,5 +65,4 @@ public class ParkingSpotDAO {
             dataBaseConfig.closeConnection(con);
         }
     }
-
 }
